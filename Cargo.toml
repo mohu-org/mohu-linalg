@@ -1,0 +1,27 @@
+[package]
+name        = "mohu-linalg"
+version     = "0.1.0"
+edition     = "2024"
+license     = "MIT"
+description = "Pure-Rust linear algebra — matmul, LU, QR, SVD, Cholesky, norms, solvers, eigenvalues"
+repository  = "https://github.com/mohu-org/mohu-linalg"
+homepage    = "https://github.com/mohu-org/mohu-linalg"
+keywords    = ["linear-algebra", "matmul", "svd", "numerics", "math"]
+categories  = ["science", "mathematics"]
+
+[dependencies]
+num-traits  = "0.2"
+num-complex = "0.4"
+rayon       = "1.10"
+thiserror   = "2"
+
+[profile.release]
+opt-level     = 3
+lto           = "thin"
+strip         = true
+panic         = "abort"
+
+[profile.bench]
+inherits = "release"
+strip    = false
+debug    = true
