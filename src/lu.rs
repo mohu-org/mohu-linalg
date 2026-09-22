@@ -154,12 +154,7 @@ mod tests {
     fn solve_known_3x3() {
         // A x = b with known solution x = [2, 3, -1]
         // A = [[2, 1, -1], [-3, -1, 2], [-2, 1, 2]], b = [8, -11, -3]
-        let a = Matrix::new(
-            3,
-            3,
-            vec![2.0, 1.0, -1.0, -3.0, -1.0, 2.0, -2.0, 1.0, 2.0],
-        )
-        .unwrap();
+        let a = Matrix::new(3, 3, vec![2.0, 1.0, -1.0, -3.0, -1.0, 2.0, -2.0, 1.0, 2.0]).unwrap();
         let b = [8.0, -11.0, -3.0];
         let x = solve(&a, &b).unwrap();
         assert_eq!(x.len(), 3);
@@ -181,20 +176,12 @@ mod tests {
     #[test]
     fn not_square() {
         let a = Matrix::<f64>::zeros(2, 3);
-        assert!(matches!(
-            lu_decompose(&a),
-            Err(LinalgError::NotSquare)
-        ));
+        assert!(matches!(lu_decompose(&a), Err(LinalgError::NotSquare)));
     }
 
     #[test]
     fn lu_reconstructs_pa() {
-        let a = Matrix::new(
-            3,
-            3,
-            vec![0.0, 1.0, 2.0, 1.0, 2.0, 3.0, 3.0, 1.0, 1.0],
-        )
-        .unwrap();
+        let a = Matrix::new(3, 3, vec![0.0, 1.0, 2.0, 1.0, 2.0, 3.0, 3.0, 1.0, 1.0]).unwrap();
         let (l, u, pivots) = lu_decompose(&a).unwrap();
 
         // Build P by applying the same swaps to identity.

@@ -25,6 +25,21 @@ pub enum LinalgError {
     /// Operation was given an empty matrix (zero rows or zero columns).
     #[error("empty matrix")]
     EmptyMatrix,
+
+    /// Matrix is not symmetric (required by e.g. [`crate::eig::eigh`]).
+    #[error("matrix is not symmetric")]
+    NotSymmetric,
+
+    /// Matrix is not symmetric positive-definite (required by Cholesky).
+    #[error("matrix is not positive definite")]
+    NotPositiveDefinite,
+
+    /// An iterative algorithm failed to converge within the iteration limit.
+    #[error("convergence failed after {iterations} iterations")]
+    ConvergenceFailed {
+        /// Number of iterations (or sweeps) attempted before giving up.
+        iterations: usize,
+    },
 }
 
 /// Convenient alias for results that may fail with [`LinalgError`].
@@ -45,5 +60,17 @@ mod tests {
         assert_eq!(LinalgError::SingularMatrix.to_string(), "singular matrix");
         assert_eq!(LinalgError::NotSquare.to_string(), "matrix is not square");
         assert_eq!(LinalgError::EmptyMatrix.to_string(), "empty matrix");
+        assert_eq!(
+            LinalgError::NotSymmetric.to_string(),
+            "matrix is not symmetric"
+        );
+        assert_eq!(
+            LinalgError::NotPositiveDefinite.to_string(),
+            "matrix is not positive definite"
+        );
+        assert_eq!(
+            LinalgError::ConvergenceFailed { iterations: 42 }.to_string(),
+            "convergence failed after 42 iterations"
+        );
     }
 }

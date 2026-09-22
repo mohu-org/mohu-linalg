@@ -114,7 +114,10 @@ mod tests {
         let b = Matrix::new(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]).unwrap();
         let c = matmul(&a, &b).unwrap();
         // [[58, 64], [139, 154]]
-        assert_eq!(c, Matrix::new(2, 2, vec![58.0, 64.0, 139.0, 154.0]).unwrap());
+        assert_eq!(
+            c,
+            Matrix::new(2, 2, vec![58.0, 64.0, 139.0, 154.0]).unwrap()
+        );
     }
 
     #[test]

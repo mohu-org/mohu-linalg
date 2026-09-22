@@ -8,12 +8,20 @@ repository  = "https://github.com/mohu-org/mohu-linalg"
 homepage    = "https://github.com/mohu-org/mohu-linalg"
 keywords    = ["linear-algebra", "matmul", "svd", "numerics", "math"]
 categories  = ["science", "mathematics"]
+readme      = "README.md"
 
 [dependencies]
 num-traits  = "0.2"
 num-complex = "0.4"
 rayon       = "1.10"
 thiserror   = "2"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name    = "matmul"
+harness = false
 
 [profile.release]
 opt-level     = 3

@@ -39,7 +39,10 @@ impl<T: Float> Matrix<T> {
     ///
     /// Panics if `rows` or `cols` is zero (use [`Self::new`] for fallible construction).
     pub fn zeros(rows: usize, cols: usize) -> Self {
-        assert!(rows > 0 && cols > 0, "zeros: rows and cols must be non-zero");
+        assert!(
+            rows > 0 && cols > 0,
+            "zeros: rows and cols must be non-zero"
+        );
         Self {
             data: vec![T::zero(); rows * cols],
             rows,
