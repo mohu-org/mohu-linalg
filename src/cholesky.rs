@@ -29,11 +29,17 @@ pub fn cholesky<T: Float>(a: &Matrix<T>) -> LinalgResult<Matrix<T>> {
                 sum = sum - l[(i, k)] * l[(j, k)];
             }
             if i == j {
+                // TODO: also reject NaN here (`sum.is_nan() || sum <= T::zero()`); a NaN sum
+                // currently slips past this check and silently fills L with NaN.
                 if sum <= T::zero() {
                     return Err(LinalgError::NotPositiveDefinite);
                 }
                 l[(i, j)] = sum.sqrt();
             } else {
+                // TODO: remove the epsilon check below. `l[(j, j)]` is the sqrt of a strictly
+                // positive value, so it is never zero, and comparing it to an absolute epsilon
+                // rejects valid SPD matrices with small entries (e.g. 1e-40 scale) as
+                // NotPositiveDefinite. Just use `sum / l[(j, j)]`.
                 let diag = l[(j, j)];
                 if diag.abs() <= T::epsilon() {
                     return Err(LinalgError::NotPositiveDefinite);

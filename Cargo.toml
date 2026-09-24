@@ -12,6 +12,7 @@ readme      = "README.md"
 
 [dependencies]
 num-traits  = "0.2"
+# TODO: num-complex is not used anywhere in src/; remove it.
 num-complex = "0.4"
 rayon       = "1.10"
 thiserror   = "2"

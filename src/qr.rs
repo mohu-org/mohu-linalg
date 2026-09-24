@@ -163,6 +163,8 @@ pub fn lstsq<T: Float>(a: &Matrix<T>, b: &[T]) -> LinalgResult<Vec<T>> {
         .iter()
         .fold(T::zero(), |acc, &x| acc.max(x.abs()));
     let n_t = T::from(n).unwrap_or_else(T::one);
+    // TODO: same issue as in lu.rs: remove `.max(T::one())` so small-scale
+    // full-rank inputs are not rejected as SingularMatrix.
     let pivot_tol = T::epsilon() * n_t * max_abs.max(T::one());
 
     let mut x = vec![T::zero(); n];

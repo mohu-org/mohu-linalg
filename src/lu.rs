@@ -38,6 +38,10 @@ pub fn lu_decompose<T: Float>(a: &Matrix<T>) -> LinalgResult<(Matrix<T>, Matrix<
         .iter()
         .fold(T::zero(), |acc, &x| acc.max(x.abs()));
     let n_t = T::from(n).unwrap_or_else(T::one);
+    // TODO: drop `.max(T::one())` so the tolerance is relative to the matrix scale.
+    // With the clamp, a well-conditioned matrix with small entries (e.g. 1e-20 * I)
+    // is reported as SingularMatrix. Use `T::epsilon() * n_t * max_abs`; a zero
+    // matrix then gives tol = 0 and still fails the pivot check as intended.
     let pivot_tol = T::epsilon() * n_t * max_abs.max(T::one());
 
     for k in 0..n {
@@ -136,6 +140,9 @@ pub fn solve<T: Float>(a: &Matrix<T>, b: &[T]) -> LinalgResult<Vec<T>> {
             s = s - u[(i, j)] * x[j];
         }
         let diag = u[(i, i)];
+        // TODO: remove this check once the pivot tolerance above is relative.
+        // `T::epsilon()` is an absolute threshold, so it would reject valid small-scale
+        // pivots that lu_decompose already accepted. Just divide by `u[(i, i)]`.
         // Should already be guarded by lu_decompose, but keep safe.
         if diag.abs() <= T::epsilon() {
             return Err(LinalgError::SingularMatrix);

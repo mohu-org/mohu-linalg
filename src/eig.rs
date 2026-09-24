@@ -36,6 +36,10 @@ pub fn eigh<T: Float>(a: &Matrix<T>) -> LinalgResult<(Vec<T>, Matrix<T>)> {
         .as_slice()
         .iter()
         .fold(T::zero(), |acc, &x| acc.max(x.abs()));
+    // TODO: make this tolerance relative: use `T::epsilon() * ||A||_F` with no
+    // `.max(T::one())`. With the clamp, any matrix with entries below ~1e-16 is
+    // treated as already diagonal and returns wrong eigenvalues without an error:
+    // eigh(1e-20 * [[2, 1], [1, 2]]) returns [2e-20, 2e-20] instead of [1e-20, 3e-20].
     let tol = T::epsilon() * T::from(n).unwrap_or_else(T::one) * max_abs.max(T::one());
     let mut converged = false;
 
@@ -80,6 +84,8 @@ fn check_symmetric<T: Float>(a: &Matrix<T>) -> LinalgResult<()> {
         .as_slice()
         .iter()
         .fold(T::zero(), |acc, &x| acc.max(x.abs()));
+    // TODO: drop `.max(T::one())` here too, otherwise clearly non-symmetric
+    // small-scale matrices pass the symmetry check.
     let tol = T::epsilon() * T::from(n * 10).unwrap_or_else(T::one) * max_abs.max(T::one());
     for i in 0..n {
         for j in (i + 1)..n {
@@ -95,6 +101,10 @@ fn check_symmetric<T: Float>(a: &Matrix<T>) -> LinalgResult<()> {
 fn sym_jacobi_cs<T: Float>(app: T, aqq: T, apq: T) -> (T, T) {
     let two = T::from(2.0).unwrap_or_else(|| T::one() + T::one());
     let diff = aqq - app;
+    // TODO: delete this special case. The `.max(T::one())` makes it fire on every
+    // pair for small-scale matrices, and this rotation does not zero apq, so
+    // eigh hits ConvergenceFailed. The general formula below already handles equal
+    // diagonals (zeta = 0 gives t = 1, the 45-degree rotation).
     if diff.abs() < T::epsilon() * (app.abs() + aqq.abs()).max(T::one()) && apq.abs() > T::zero() {
         // 45-degree rotation when diagonal entries are nearly equal.
         let sqrt2_inv = T::one() / two.sqrt();

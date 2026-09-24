@@ -47,6 +47,16 @@ fn svd_tall<T: Float>(a: &Matrix<T>) -> LinalgResult<(Matrix<T>, Vec<T>, Matrix<
     let mut v = Matrix::identity(n);
 
     let tol = T::epsilon() * T::from(m.max(n)).unwrap_or_else(T::one);
+    // TODO: fix the convergence test in the sweep loop below. `max_off` is a dot
+    // product (scales like |A|^2) but is compared with `tol * ||B||_F` (scales like
+    // |A|), so any matrix with entries around 1e3 or larger never converges:
+    // svd([[1,2,3],[4,5,6],[7,8,10]] * 1000) returns ConvergenceFailed. This also
+    // breaks nuclear_norm. Replace it with a `rotated` flag and stop once a full
+    // sweep performs no rotation.
+    //
+    // TODO: also skip pairs where either column norm is below `tol * ||A||_F`.
+    // On rank-deficient input one column collapses to rounding noise, which can
+    // never pass the relative orthogonality test, so the sweeps stall without it.
     let mut converged = false;
 
     for _sweep in 0..MAX_SWEEPS {
@@ -55,6 +65,8 @@ fn svd_tall<T: Float>(a: &Matrix<T>) -> LinalgResult<(Matrix<T>, Vec<T>, Matrix<
             for q in (p + 1)..n {
                 let (alpha, beta, gamma) = column_gram(&b, p, q, m);
                 max_off = max_off.max(gamma.abs());
+                // TODO: drop `.max(T::epsilon())` once the negligible-column skip above exists;
+                // the pair test should be purely relative: |gamma| <= tol * sqrt(alpha * beta).
                 let scale = (alpha * beta).sqrt().max(T::epsilon());
                 if gamma.abs() <= tol * scale {
                     continue;
@@ -85,6 +97,14 @@ fn svd_tall<T: Float>(a: &Matrix<T>) -> LinalgResult<(Matrix<T>, Vec<T>, Matrix<
         }
         let nrm = nrm_sq.sqrt();
         sigma[j] = nrm;
+        // TODO: two problems here:
+        // 1. The absolute `T::epsilon()` threshold is scale-dependent. Compare against
+        //    `sigma_max * tol` instead (sort first, then build U).
+        // 2. Columns under the threshold are left as zeros, so U does not have
+        //    orthonormal columns for rank-deficient input, even though the svd() docs
+        //    say it does. Fill those columns with an orthonormal completion: take the
+        //    standard basis vector with the largest residual after two Gram-Schmidt
+        //    passes against the earlier columns, then normalize it.
         if nrm > T::epsilon() {
             for i in 0..m {
                 u[(i, j)] = b[(i, j)] / nrm;
